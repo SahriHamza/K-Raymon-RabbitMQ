@@ -16,14 +16,14 @@ class NodeController:
 		self.channel.exchange_declare(exchange='K_Raymond',
 			 exchange_type='direct')
 
-		result = self.channel.queue_declare(exclusive=True)
+		result = self.channel.queue_declare(queue=self.node.ref,durable=True)
 		queue_name = result.method.queue
 
 		print("subscribing to the node queue")
 		self.channel.queue_bind(exchange='K_Raymond',
 		       		queue=queue_name,
 		       		routing_key=self.node.ref)
-		self.channel.basic_consume(self.callback,queue=queue_name,no_ack=True)
+		self.channel.basic_consume(self.callback,queue=queue_name,no_ack=False)
 
 	def beginListen(self):
 		self.channel.start_consuming()
@@ -35,6 +35,7 @@ class NodeController:
 		self.nodeEvent.exitTheCriticalSection()
 
 	def callback(self,ch, method, properties, body):
+		ch.basic_ack(delivery_tag = method.delivery_tag)
 		props = body.split("-") #body -> REQUEST-B
 		print("Received: " + props[0] + " from : " + props[1])
 		if props[0] == "REQUEST":

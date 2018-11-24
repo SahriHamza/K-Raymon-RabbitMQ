@@ -11,19 +11,22 @@ class PikaConnection:
                          exchange_type='direct')
 		channel.basic_publish(exchange='K_Raymond',
                       routing_key=routing_key,
-                      body=body)
+                      body=body,
+                      properties=pika.BasicProperties(
+                         delivery_mode = 2, # make message persistent
+                      ))
 		connection.close()
 
 class Node:
 
 	def __init__(self,ref,neighbors,holderRef):
-		self.ref = ref 
-		self.neighbors = neighbors
-		self.holderRef = holderRef
-		self.asked = False
-		self.using = False
-		self.requestQ = [] 
-		self.connection = PikaConnection()
+		self.ref = ref #the name of the node
+		self.neighbors = neighbors #the neighbors : a list of node names
+		self.holderRef = holderRef #the name of the holder
+		self.asked = False # True if the node asked for the privilege
+		self.using = False # True if the node is using the priviege
+		self.requestQ = [] # FIFO of the requester neighbors
+		self.connection = PikaConnection() 
 		
 
 	def make_request(self):
